@@ -101,7 +101,7 @@ class ParseRheaReactions(object):
         return rxn_all
 
 
-def link_compound2chebi(compound):
+def link_compound2chebi(compound, apik):
     def replace_strings(compound_name):
         """
         takes list of compound names and replaces with names formatted for NCBO annotator
@@ -128,7 +128,7 @@ def link_compound2chebi(compound):
 
     """
     url = 'http://data.bioontology.org/annotator'
-    params = dict(apikey=api_key, text=compound, ontologies='CHEBI', longest_only='true',
+    params = dict(apikey=apik, text=compound, ontologies='CHEBI', longest_only='true',
                   include='properties', exlude_numbers='false', exclude_synonyms='false', mappins='all')
     tm_results = requests.get(url=url, params=params).json()
 
@@ -177,9 +177,9 @@ class AnnotateExpasy(object):
                     # split each side of reaction on '+' not '(+)'
                     r = re.compile(r'(?:[^\+(]|\([^)]*\))+')
                     left = [x.strip() for x in r.findall(left)]
-                    left = {x: link_compound2chebi(x) for x in left}
+                    left = {x: link_compound2chebi(x, self.apikey) for x in left}
                     right = [x.strip() for x in r.findall(right)]
-                    right = {x: link_compound2chebi(x) for x in right}
+                    right = {x: link_compound2chebi(x, self.apikey) for x in right}
                     enz_rec['reaction(s)']['rxn_' + str(rcount)] = {'reaction': rxn,
                                                                     'left': left,
                                                                     'right': right
@@ -189,3 +189,6 @@ class AnnotateExpasy(object):
             reaction_list.append(enz_rec)
 
         return reaction_list
+#
+# api_key = '0a99c359-d2a2-483a-8dca-148c3bb4e8c1'
+# AnnotateExpasy(apikey=api_key)
