@@ -1,0 +1,7 @@
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+rd.tar.gz
+rd/
+rhea_ec_chebi_rxn.py
+
