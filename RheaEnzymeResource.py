@@ -18,7 +18,6 @@ client = MongoClient()
 reactions_db = client['reactions']
 expasy_coll = reactions_db.expasy
 rhea_coll = reactions_db.rhea
-chebi_coll = reactions_db.chebi
 
 
 class ParseRheaReactions(object):
@@ -76,11 +75,11 @@ class ParseRheaReactions(object):
         for filename in glob.glob(os.path.join('rd/*.rd')):
 
             rxn = {}
-            rxn['Timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())
+            rxn['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())
             rheaid1 = filename.split('.')[0]
             rheaid = rheaid1.split('/')[1]
             with open(filename) as fp:
-                rxn['rhea_id'] = rheaid
+                rxn['_id'] = rheaid
                 reaction = {}
                 for line in fp:
                     line = line.strip()
@@ -92,11 +91,12 @@ class ParseRheaReactions(object):
                             reaction[line] = 'none'
                 rxn['chebi_id'] = reaction
                 try:
-                    rxn['ecnumber'] = self.rhea2ec[rxn['rhea_id']]
+                    rxn['ecnumber'] = self.rhea2ec[rxn['_id']]
                 except Exception as e:
                     next
                 rxn_all.append(rxn)
-        rhea_coll.insert_many(rxn_all)
+                # find and replace entire doc if exists else insert new if does not exist
+                rhea_coll.replace_one({'_id': rxn['_id']}, replacement=rxn, upsert=True)
 
         return rxn_all
 
@@ -156,8 +156,9 @@ class AnnotateExpasy(object):
         for record in enzyme_p:
             enz_rec = {
                 'reaction(s)': {},
-                'ecnumber': record['ID'],
-                'description': record['DE'].strip(".")
+                '_id': record['ID'],
+                'description': record['DE'].strip("."),
+                'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())
             }
             count += 1
 
@@ -181,9 +182,10 @@ class AnnotateExpasy(object):
                     right = {x: link_compound2chebi(x) for x in right}
                     enz_rec['reaction(s)']['rxn_' + str(rcount)] = {'reaction': rxn,
                                                                     'left': left,
-                                                                        'right': right
+                                                                    'right': right
                                                                      }
-            expasy_coll.insert_one(enz_rec)
+            print('rxn_' + str(count))
+            expasy_coll.replace_one({'_id': enz_rec['_id']}, replacement=enz_rec, upsert=True)
             reaction_list.append(enz_rec)
 
         return reaction_list
