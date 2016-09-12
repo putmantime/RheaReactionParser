@@ -54,7 +54,6 @@ class ParseRheaReactions(object):
                 ec_dict[ec_list[1]] = ec_list[0]
             return ec_dict
 
-
     def get_chebi_names_list(self):
         #        retrieve tsv of chebi name id pairs
         chebi_list_path = 'tsv/chebiId_name.tsv'
@@ -184,11 +183,12 @@ class AnnotateExpasy(object):
                                                                     'left': left,
                                                                     'right': right
                                                                      }
+                    print(enz_rec['reaction(s)']['rxn_' + str(rcount)])
             print('rxn_' + str(count))
             expasy_coll.replace_one({'_id': enz_rec['_id']}, replacement=enz_rec, upsert=True)
             reaction_list.append(enz_rec)
 
         return reaction_list
 #
-# api_key = '0a99c359-d2a2-483a-8dca-148c3bb4e8c1'
-# AnnotateExpasy(apikey=api_key)
+api_key = '0a99c359-d2a2-483a-8dca-148c3bb4e8c1'
+AnnotateExpasy(apikey=api_key)
