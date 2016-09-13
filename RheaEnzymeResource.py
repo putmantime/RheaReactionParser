@@ -189,6 +189,3 @@ class AnnotateExpasy(object):
             reaction_list.append(enz_rec)
 
         return reaction_list
-#
-api_key = '0a99c359-d2a2-483a-8dca-148c3bb4e8c1'
-AnnotateExpasy(apikey=api_key)
